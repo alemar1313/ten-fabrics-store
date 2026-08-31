@@ -1,0 +1,776 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The First Collection Blueprint</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@500;700;900&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#F6F1E7;
+    --card:#FFFDF8;
+    --card-2:#FBF6EC;
+    --ink:#201C16;
+    --ink-soft:#6E6659;
+    --ink-faint:#9A9182;
+    --line:#DFD5BE;
+    --line-strong:#C9BC9E;
+    --accent:#24435F;
+    --accent-ink:#173145;
+    --accent-soft:#E3EAEF;
+    --accent-soft-line:#C3D2DD;
+    --shadow: 0 1px 0 rgba(32,28,22,0.05);
+    --radius: 3px;
+    --content-w: 40rem;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#151109;
+      --card:#1D1811;
+      --card-2:#231D14;
+      --ink:#EDE6D5;
+      --ink-soft:#AFA48D;
+      --ink-faint:#7C7361;
+      --line:#332B1E;
+      --line-strong:#463C29;
+      --accent:#8CB2D2;
+      --accent-ink:#CFE0EC;
+      --accent-soft:#20303C;
+      --accent-soft-line:#2D4152;
+      --shadow: 0 1px 0 rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#151109;
+    --card:#1D1811;
+    --card-2:#231D14;
+    --ink:#EDE6D5;
+    --ink-soft:#AFA48D;
+    --ink-faint:#7C7361;
+    --line:#332B1E;
+    --line-strong:#463C29;
+    --accent:#8CB2D2;
+    --accent-ink:#CFE0EC;
+    --accent-soft:#20303C;
+    --accent-soft-line:#2D4152;
+    --shadow: 0 1px 0 rgba(0,0,0,0.3);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent-soft); color:var(--accent-ink); }
+
+  a{ color:var(--accent); }
+  a:focus-visible, button:focus-visible, .navlink:focus-visible{
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+
+  .num{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  /* ---- Ruler / spec-tick motif ---- */
+  .ticks{
+    height:14px;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--line-strong) 0, var(--line-strong) 1px,
+      transparent 1px, transparent 12px
+    );
+    background-position: 0 0;
+    opacity:.7;
+  }
+
+  /* ---- Shell ---- */
+  .shell{
+    display:grid;
+    grid-template-columns: 17rem 1fr;
+    min-height:100vh;
+  }
+  @media (max-width: 860px){
+    .shell{ grid-template-columns: 1fr; }
+  }
+
+  /* ---- Sidebar ---- */
+  .sidebar{
+    border-right:1px solid var(--line);
+    padding: 1.75rem 1.5rem 2rem;
+    position:sticky; top:0; align-self:start; height:100vh;
+    overflow-y:auto;
+    display:flex; flex-direction:column; gap:1.75rem;
+  }
+  @media (max-width: 860px){
+    .sidebar{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); }
+  }
+  .brand{
+    display:flex; flex-direction:column; gap:.15rem;
+  }
+  .brand .mark{
+    font-family:"Big Shoulders", sans-serif;
+    font-weight:900;
+    font-size:1.05rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .brand .sub{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.7rem;
+    color:var(--ink-faint);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+
+  .navgroup{ display:flex; flex-direction:column; gap:.15rem; }
+  .navlabel{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.68rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:.4rem 0 .3rem;
+  }
+  .navlink{
+    display:flex; align-items:baseline; gap:.6rem;
+    padding:.4rem .5rem;
+    border-radius:var(--radius);
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:.88rem;
+    line-height:1.35;
+  }
+  .navlink:hover{ background:var(--card-2); color:var(--ink); }
+  .navlink .n{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.75rem;
+    color:var(--accent);
+    flex:none;
+    width:1.3rem;
+  }
+  .navmeta{
+    margin-top:auto;
+    padding-top:1rem;
+    border-top:1px solid var(--line);
+    font-size:.72rem;
+    color:var(--ink-faint);
+    line-height:1.5;
+  }
+
+  /* ---- Main ---- */
+  main{ min-width:0; }
+
+  .cover{
+    padding: 4.5rem 2.5rem 3rem;
+    border-bottom:1px solid var(--line);
+    background:
+      linear-gradient(180deg, var(--card) 0%, var(--paper) 100%);
+  }
+  .cover-inner{ max-width: 44rem; margin:0 auto; }
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.75rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    display:flex; align-items:center; gap:.6rem;
+    margin-bottom:1.1rem;
+  }
+  .eyebrow::before{
+    content:"";
+    width:1.4rem; height:1px; background:var(--accent);
+  }
+  h1.title{
+    font-family:"Big Shoulders", sans-serif;
+    font-weight:900;
+    font-size: clamp(2.6rem, 6vw, 4.2rem);
+    line-height:.96;
+    letter-spacing:-.01em;
+    text-transform:uppercase;
+    text-wrap:balance;
+    margin:0 0 .5rem;
+  }
+  .title .line2{ color:var(--accent); }
+  .deck{
+    font-size:1.05rem;
+    color:var(--ink-soft);
+    max-width:34rem;
+    margin:1rem 0 0;
+  }
+  .deck b{ color:var(--ink); font-weight:600; }
+
+  .specsheet{
+    margin-top:2.5rem;
+    border:1px solid var(--line);
+    background:var(--card);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .specsheet-row{
+    display:grid;
+    grid-template-columns: 9rem 1fr;
+    border-top:1px solid var(--line);
+  }
+  .specsheet-row:first-child{ border-top:none; }
+  .specsheet-row .k{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.72rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    padding:.9rem 1rem;
+    border-right:1px solid var(--line);
+    background:var(--card-2);
+  }
+  .specsheet-row .v{ padding:.9rem 1.1rem; font-size:.94rem; color:var(--ink); }
+  .specsheet-row .v ul{ margin:0; padding-left:1.1rem; }
+  .specsheet-row .v li{ margin:.25rem 0; }
+
+  .lesson-grid{
+    margin-top:2.5rem;
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+    gap:.9rem;
+  }
+  .lesson-card{
+    border:1px solid var(--line);
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:1.1rem 1.1rem 1.2rem;
+    text-decoration:none;
+    color:inherit;
+    display:flex; flex-direction:column; gap:.5rem;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .lesson-card:hover{ border-color:var(--accent); transform:translateY(-1px); }
+  .lesson-card .n{
+    font-family:"Big Shoulders", sans-serif;
+    font-weight:800;
+    font-size:1.9rem;
+    color:var(--accent-soft-line);
+    line-height:1;
+  }
+  .lesson-card h3{
+    margin:0; font-size:.98rem; font-weight:600; line-height:1.3;
+  }
+  .lesson-card p{ margin:0; font-size:.83rem; color:var(--ink-soft); line-height:1.45; }
+
+  /* ---- Lesson sections ---- */
+  .lesson{
+    max-width: var(--content-w);
+    margin: 0 auto;
+    padding: 3.5rem 2rem 1rem;
+    scroll-margin-top: 1rem;
+  }
+  .lesson-head{
+    display:flex; align-items:flex-start; gap:1.1rem;
+    padding-bottom:1.5rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2rem;
+  }
+  .lesson-head .n{
+    font-family:"Big Shoulders", sans-serif;
+    font-weight:900;
+    font-size:3.4rem;
+    line-height:.85;
+    color:var(--accent);
+    flex:none;
+  }
+  .lesson-head .t h2{
+    font-family:"Big Shoulders", sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.01em;
+    font-size:1.5rem;
+    line-height:1.15;
+    margin:0 0 .35rem;
+    text-wrap:balance;
+  }
+  .lesson-head .t .hook{
+    color:var(--ink-soft);
+    font-size:.92rem;
+  }
+
+  .lesson p{ margin: 0 0 1.15rem; color:var(--ink); }
+  .lesson h3{
+    font-family:"IBM Plex Sans", sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    margin: 2.1rem 0 .9rem;
+    padding-bottom:.5rem;
+    border-bottom:1px solid var(--line);
+  }
+  .lesson h3 .idx{
+    font-family:"IBM Plex Mono", monospace;
+    color:var(--accent);
+    font-weight:500;
+    margin-right:.5rem;
+    font-size:.92rem;
+  }
+  .lesson ul, .lesson ol{ margin: 0 0 1.15rem; padding-left:1.3rem; }
+  .lesson li{ margin: .4rem 0; }
+  .lesson strong{ color:var(--ink); font-weight:600; }
+  .lesson blockquote{
+    margin: 1.3rem 0;
+    padding: 1rem 1.2rem;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size:1.02rem;
+  }
+  .lesson blockquote strong{ color:var(--accent-ink); }
+
+  .callout{
+    margin: 1.6rem 0;
+    padding: 1.1rem 1.2rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .callout .lbl{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.68rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:.5rem;
+    display:block;
+  }
+  .callout p:last-child{ margin-bottom:0; }
+
+  .lesson-foot{
+    margin: 2.8rem 0 1rem;
+    padding-top: 1.5rem;
+    border-top:1px dashed var(--line-strong);
+    font-size:.9rem;
+    color:var(--ink-soft);
+  }
+  .lesson-foot .lbl{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:.68rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    display:block;
+    margin-bottom:.4rem;
+  }
+
+  .closer{
+    max-width: var(--content-w);
+    margin: 0 auto;
+    padding: 1rem 2rem 6rem;
+  }
+  .closer .box{
+    border:1px solid var(--accent-soft-line);
+    background:var(--accent-soft);
+    border-radius:var(--radius);
+    padding:1.4rem 1.5rem;
+    color:var(--accent-ink);
+    font-size:.98rem;
+  }
+  .closer .box p{ margin:0 0 .7rem; }
+  .closer .box p:last-child{ margin-bottom:0; }
+
+  @media (prefers-reduced-motion: reduce){
+    .lesson-card{ transition:none; }
+  }
+</style>
+
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="mark">Ten Fabrics</span>
+      <span class="sub">First-Time Founder Guide</span>
+    </div>
+
+    <nav class="navgroup" aria-label="Lessons">
+      <a class="navlink" href="#overview"><span class="n">00</span> Overview</a>
+      <div class="navlabel">Lessons</div>
+      <a class="navlink" href="#lesson-1"><span class="n">01</span> Validate Your Idea &amp; Customer</a>
+      <a class="navlink" href="#lesson-2"><span class="n">02</span> Plan Collection, SKUs &amp; Costing</a>
+      <a class="navlink" href="#lesson-3"><span class="n">03</span> Manufacturer-Ready Specs</a>
+      <a class="navlink" href="#lesson-4"><span class="n">04</span> Find &amp; Vet a Manufacturer</a>
+      <a class="navlink" href="#lesson-5"><span class="n">05</span> Sample to Production</a>
+    </nav>
+
+    <div class="navmeta">
+      &copy; Ten Fabrics
+      <a href="https://tenfabrics.com" style="color:inherit;">tenfabrics.com</a>
+    </div>
+  </aside>
+
+  <main>
+    <div class="ticks"></div>
+
+    <section class="cover" id="overview">
+      <div class="cover-inner">
+        <div class="eyebrow">By Ten Fabrics — for first-time fashion founders</div>
+        <h1 class="title">The First<br>Collection<br><span class="line2">Blueprint</span></h1>
+        <p class="deck">From idea to production, in <b>5 practical lessons</b> — a clear, production-ready roadmap for your first apparel collection.</p>
+
+        <div class="specsheet">
+          <div class="specsheet-row">
+            <div class="k">The Problem</div>
+            <div class="v">Most first-time founders don't fail because their product idea was bad. They fail because nobody told them what order to do things in — they design first and cost later, source a factory before they have a tech pack, and find out about a 3,000-yard fabric minimum after they've already committed to a print.</div>
+          </div>
+          <div class="specsheet-row">
+            <div class="k">The Promise</div>
+            <div class="v">By the end of this blueprint, you'll have a clear, production-ready roadmap for your first apparel collection — not theory, five practical lessons.</div>
+          </div>
+          <div class="specsheet-row">
+            <div class="k">You'll Leave With</div>
+            <div class="v">
+              <ul>
+                <li>A defined target customer, product concept, and price point</li>
+                <li>A realistic first-collection plan: products, SKUs, quantities, and a working budget</li>
+                <li>A manufacturer-ready product brief and the tech pack basics behind it</li>
+                <li>A shortlist of vetted manufacturers and the criteria to evaluate them against</li>
+                <li>A step-by-step action plan for moving from sample to production</li>
+              </ul>
+            </div>
+          </div>
+          <div class="specsheet-row">
+            <div class="k">Why Ten Fabrics</div>
+            <div class="v">Turning an idea into a produced garment is Ten Fabrics' actual job — sampling, sourcing, tech packs, factory vetting, QC, all of it, run for founders who'd rather not learn it the expensive way. This is that process, condensed into something you can run yourself before you're ready for — or need — a full production partner.</div>
+          </div>
+        </div>
+
+        <div class="lesson-grid">
+          <a class="lesson-card" href="#lesson-1">
+            <span class="n">01</span>
+            <h3>Validate Your Idea &amp; Define Your Target Customer</h3>
+            <p>Who you're making this for, and what you're actually making — decided before you design anything.</p>
+          </a>
+          <a class="lesson-card" href="#lesson-2">
+            <span class="n">02</span>
+            <h3>Plan Your Collection, SKUs &amp; Costing</h3>
+            <p>How many products, how many units, and whether the numbers work before you commit to any of them.</p>
+          </a>
+          <a class="lesson-card" href="#lesson-3">
+            <span class="n">03</span>
+            <h3>Make Your Product Manufacturer-Ready</h3>
+            <p>Turning what's in your head into something a factory can actually build without guessing.</p>
+          </a>
+          <a class="lesson-card" href="#lesson-4">
+            <span class="n">04</span>
+            <h3>Find, Vet &amp; Negotiate With a Manufacturer</h3>
+            <p>Where to look, what to ask, and how to negotiate before you sign anything.</p>
+          </a>
+          <a class="lesson-card" href="#lesson-5">
+            <span class="n">05</span>
+            <h3>From Sample to Production</h3>
+            <p>Sampling, revisions, approval, PO, QC, shipping — the exact sequence to finished goods.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- LESSON 1 -->
+    <article class="lesson" id="lesson-1">
+      <div class="lesson-head">
+        <div class="n">01</div>
+        <div class="t">
+          <h2>Validate Your Apparel Brand Idea &amp; Define Your Target Customer</h2>
+          <div class="hook">Who you're making this for, and what you're actually making.</div>
+        </div>
+      </div>
+
+      <p>Most first collections don't start with a customer. They start with a product someone likes — a jacket they saw, a fabric they fell in love with, a silhouette that's been in their head for a year. Then it gets priced by feel and aimed at "everyone who'd like this."</p>
+      <p>That's not how it actually works. A collection built for everyone gets bought by no one, because nothing about it is specific enough to be someone's obvious answer. This lesson isn't about brand philosophy or mood boards. It's about walking away with four concrete decisions — customer, product category, positioning, price point — that every design and production choice after this gets measured against.</p>
+
+      <h3><span class="idx">1</span>Define Your Target Customer — With Specifics, Not a Vibe</h3>
+      <p>"Women who care about sustainability" is a demographic, not a customer — no shopping behavior attached to it, nothing about what she actually buys. Get specific enough that you could describe her closet, not just her values.</p>
+      <p>Answer these directly:</p>
+      <ul>
+        <li><strong>Age range and income bracket</strong> — not "millennials," a number range you could target with an ad account</li>
+        <li><strong>What she already buys</strong> — name three brands she currently shops, at what price point</li>
+        <li><strong>Where she shops</strong> — Instagram discovery, a specific boutique, a marketplace, word of mouth</li>
+        <li><strong>What she's dissatisfied with</strong> — the actual gap in what she can currently buy (fit, price, quality, values, availability)</li>
+      </ul>
+      <p>If you can't answer "what does she already buy," you don't have a customer yet — you have a hope.</p>
+
+      <h3><span class="idx">2</span>Pick One Product Category — Not Five</h3>
+      <p>The instinct on a first collection is to cover every base: tees, hoodies, outerwear, accessories. Resist it. One hero category, built well, outperforms five categories built thin — and it's the only way lesson 2's budget math stays sane.</p>
+      <p>Pick the one product your target customer would buy from you first, before she trusts you with anything else. That's usually the simplest, most repeatable item in the range — not the most ambitious one.</p>
+
+      <h3><span class="idx">3</span>Find Your Positioning — The One Sentence That Differentiates You</h3>
+      <p>Positioning is the answer to one question: why does she buy this from you instead of the two brands she already buys from?</p>
+      <p>Three real levers, pick the one you can actually defend:</p>
+      <ul>
+        <li><strong>Fit or construction</strong> — solves a specific fit problem the alternatives don't</li>
+        <li><strong>Price</strong> — same quality, meaningfully cheaper, or same price, meaningfully better made</li>
+        <li><strong>Values or story</strong> — a real, specific claim (organic cotton, made in a named place, a specific cause) — not "sustainable," which means nothing without a mechanism behind it</li>
+      </ul>
+      <p>If your positioning sentence could apply to any brand in your category, it isn't positioning yet.</p>
+
+      <h3><span class="idx">4</span>Set Your Price Point Before You Design Anything</h3>
+      <p>Retail price isn't a decision you make after the product is finished. It's a constraint you design inside of. A €45 tee and a €120 tee aren't the same product with a different price tag — they use different fabric weights, different construction, different trims, different factories.</p>
+      <p>Decide the retail price bracket now, based on what your target customer already pays for comparable products. Lesson 2 turns that number into a cost target; lesson 3 turns it into fabric and construction decisions. Skip this step and you'll design something you can't actually price to sell.</p>
+
+      <div class="callout">
+        <span class="lbl">What You Should Walk Away With</span>
+        <p>Write one sentence, filling in your own answers:</p>
+        <blockquote><strong>[Customer] buys [product category] at [price point] because [positioning].</strong></blockquote>
+        <p>If you can fill in every blank with something specific — not "quality," not "everyone," not "affordable" — you have a validated starting point. Everything in lesson 2 gets built on top of this one sentence.</p>
+      </div>
+
+      <div class="lesson-foot">
+        <span class="lbl">Next</span>
+        Lesson 2 turns your customer and product concept into an actual collection plan — how many products, how many units of each, and whether the numbers work before you spend a euro on samples.
+      </div>
+    </article>
+
+    <!-- LESSON 2 -->
+    <article class="lesson" id="lesson-2">
+      <div class="lesson-head">
+        <div class="n">02</div>
+        <div class="t">
+          <h2>Plan Your First Collection: Products, SKUs, Quantities &amp; Costing</h2>
+          <div class="hook">How many products, how many units, and whether the numbers work.</div>
+        </div>
+      </div>
+
+      <p>A "collection" is a number of SKUs, not a number of designs — and SKU count is where most first-time founders quietly blow their budget before a single sample is cut.</p>
+      <p>One style, in 3 colors, in 5 sizes, is 15 SKUs — not one product. Five styles like that is 75 SKUs. Each SKU needs its own minimum production run, its own inventory line, its own cash tied up on a shelf. This lesson is about building a first collection sized to what you can actually sell and actually afford — and knowing your cost numbers before you commit to any of it.</p>
+
+      <h3><span class="idx">1</span>Size Your SKU Count to a First Collection, Not a Full Range</h3>
+      <p>A first collection should be small enough to sell through fast and learn from, not big enough to prove your total addressable market. As a starting range: <strong>1–3 styles, 2–3 colorways each, a core size run</strong> (not every size you can imagine). That's 10–25 SKUs, not 75.</p>
+      <p>Fewer SKUs means:</p>
+      <ul>
+        <li>Less cash tied up in units that don't sell</li>
+        <li>A tighter fabric and trim order — closer to hitting a mill's minimum on one color instead of splitting it thin across five</li>
+        <li>A cleaner story to tell — "the tee, in three colors" is easier to market than fifteen half-explained options</li>
+      </ul>
+      <p>Resist adding a style because it's easy to design. Add it only if your target customer from lesson 1 would buy it.</p>
+
+      <h3><span class="idx">2</span>Set Quantities Per SKU — Don't Guess, Anchor to a Number</h3>
+      <p>For a first production run, anchor quantities to what you can realistically sell in your first 60–90 days, not what a factory's minimum wants you to order. A common starting range for a first run is <strong>50–300 units per SKU</strong>, weighted toward your best-guess best sellers (usually your core colorway, mid sizes) and lighter on the rest.</p>
+      <p>Write your quantities into a simple grid — style, color, size, quantity — before you talk to a single manufacturer. It's the first thing any real factory will ask for, and "I'm not sure yet" reads as a red flag on your side of the table, not theirs.</p>
+
+      <h3><span class="idx">3</span>Know Your Cost Target — Before Your Cost Exists</h3>
+      <p>You set a retail price bracket in lesson 1. Now work backward from it to a target production cost, using the same math the industry actually runs on:</p>
+      <blockquote><strong>Retail price ÷ markup multiplier = your target cost per unit.</strong></blockquote>
+      <ul>
+        <li>Direct-to-consumer brands (selling on your own site): retail is typically <strong>2.5–3x</strong> your landed cost per unit</li>
+        <li>Wholesale (selling into stores): retail is typically <strong>2x</strong> the wholesale price, and wholesale is typically <strong>2x</strong> your landed cost — so <strong>4x</strong> total from cost to shelf</li>
+      </ul>
+      <p>Example: if your target retail is €60 DTC, your target landed cost per unit is roughly €20–24. If that number doesn't leave room for a fabric and construction quality your customer will actually pay €60 for, that's information now — not a surprise after your first sample comes back priced at €35.</p>
+      <p><strong>Landed cost isn't just fabric and sewing.</strong> It's fabric, trims, cut-and-sew labor, packaging, freight, and duties if you're importing. Ask any quote you receive whether it's ex-factory (before shipping and duties) or landed — the gap between the two is routinely 15–30% and it's where first-timers most often blow their margin without noticing.</p>
+
+      <h3><span class="idx">4</span>Split Your Budget: Sample Budget vs. Production Budget</h3>
+      <p>These are two different pools of money and founders routinely underfund the first one:</p>
+      <ul>
+        <li><strong>Sample budget</strong> — covers 2–4 rounds of physical samples per style before you approve anything for production. Underfunding this is the single most common first-collection mistake — it pushes founders to approve a sample that's "close enough" because there's no budget left for another round, and "close enough" is what ships to your customer.</li>
+        <li><strong>Production budget</strong> — covers your actual bulk order, sized to the quantities above, plus a buffer (10–15%) for the almost-certain reality that your first PO isn't your last conversation about cost.</li>
+      </ul>
+      <p>Fund sampling properly. A collection that's slightly delayed because you paid for a third sample round costs you less than a collection that ships with a fit problem you didn't have the budget to fix.</p>
+
+      <div class="callout">
+        <span class="lbl">Your One-Page Collection Plan</span>
+        <p>Write down: your SKU grid (style × color × size × quantity), your target cost per unit, and two separate budget lines — sample and production. If any number on that page is a guess rather than a calculation, that's the number to fix before lesson 3.</p>
+      </div>
+
+      <div class="lesson-foot">
+        <span class="lbl">Next</span>
+        Lesson 3 turns your product concept and cost target into something a manufacturer can actually quote and build — a product brief, a tech pack, and the fabric and trim specifics a factory needs so they're not filling in the blanks for you.
+      </div>
+    </article>
+
+    <!-- LESSON 3 -->
+    <article class="lesson" id="lesson-3">
+      <div class="lesson-head">
+        <div class="n">03</div>
+        <div class="t">
+          <h2>Make Your Product Manufacturer-Ready: Tech Packs, Fabrics &amp; Product Briefs</h2>
+          <div class="hook">Turning what's in your head into something a factory can build.</div>
+        </div>
+      </div>
+
+      <p>A factory builds what you wrote down — not what you imagined.</p>
+      <p>Most first-time founders hand a manufacturer a mood board and a reference photo and expect the gap to fill itself in. It doesn't. A factory that receives an incomplete spec doesn't pause and ask — it makes a decision for you, usually the cheapest one available, and you find out three weeks later when the sample arrives close but wrong. This lesson is about closing that gap before it costs you a sample round: a product brief, a tech pack, and the fabric and trim details a factory needs so nothing gets filled in on your behalf.</p>
+
+      <h3><span class="idx">1</span>Product Brief vs. Tech Pack — They're Not the Same Document</h3>
+      <p><strong>The product brief</strong> is the story: what this product is, who it's for, what makes it different, what it needs to feel like. It's context — useful for a factory to understand intent, but not something they can build from directly.</p>
+      <p><strong>The tech pack</strong> is the execution spec: the measurements, construction, and materials a factory actually works from. It's the document that gets referenced when a sample is checked against what was ordered, and the same document your reorder gets built from a year from now without re-litigating the design.</p>
+      <p>You need both. The brief without the tech pack gets you a factory's best guess. The tech pack without the brief gets you a technically correct product that's missed the point.</p>
+
+      <h3><span class="idx">2</span>Tech Pack Essentials — What Actually Has to Be In It</h3>
+      <ul>
+        <li><strong>Flat sketches, front and back</strong> — technical drawings, not inspiration images. They show construction, not mood.</li>
+        <li><strong>A full measurement spec, by size</strong> — every point of measure (chest, length, sleeve, hem), in numbers, for every size in your range. Not "medium." Numbers.</li>
+        <li><strong>Point-of-measure tolerances</strong> — how much variance is acceptable before a sample gets rejected (commonly ±0.5–1cm on most points). Without a stated tolerance, you have no objective basis to reject a sample that's slightly off.</li>
+        <li><strong>Construction details</strong> — stitch type, seam finish, hem type, closures. The things a factory can't infer from a photo.</li>
+        <li><strong>A size chart and grading rules</strong> — how measurements scale from your base size up and down the range.</li>
+      </ul>
+      <p>None of this has to be produced by a professional pattern-maker on day one. It has to be specific enough that two different factories, reading the same tech pack, would build the same garment.</p>
+
+      <h3><span class="idx">3</span>Fabric Specification — Where "It Should Feel Premium" Falls Apart</h3>
+      <p>"Feel premium" isn't a spec — a factory can't source against a feeling. A fabric is only actually specified once you can state:</p>
+      <ul>
+        <li><strong>Composition</strong> — the exact fiber content and blend (e.g., 100% organic cotton, or a 95/5 cotton-elastane blend)</li>
+        <li><strong>Weight (GSM)</strong> — grams per square meter. This single number does more to determine drape, structure, and cost than almost anything else in the spec, and it's the one beginners skip most often.</li>
+        <li><strong>Color reference</strong> — a physical swatch or a Pantone code, not a screen color. Screens render color inconsistently; factories can't match what they can't hold.</li>
+        <li><strong>Finish</strong> — brushed, enzyme-washed, compact-knit, whatever applies. This is what separates a €20 tee from a €60 one in the same composition and weight.</li>
+      </ul>
+      <p>Send a factory "cotton, feels soft" and you'll get their cheapest available cotton at whatever weight they happen to be running. Send them "220 GSM, 100% combed organic cotton, single jersey, physical swatch attached" and you'll get exactly that.</p>
+
+      <h3><span class="idx">4</span>Trims — The Small Details That Cause the Big Delays</h3>
+      <p>Trims are everything that isn't the main fabric: buttons, zippers, drawcords, labels, hangtags, thread color, care labels, packaging. They feel minor until one of them isn't specified and a factory substitutes their own default — a plastic zip pull instead of the metal one you assumed, a label sewn in the wrong place, thread that doesn't match.</p>
+      <p>Specify: trim type and supplier if you have one, placement, color, and — critically — <strong>label and packaging requirements</strong>, since these are the details most often forgotten until the sample is already in your hands and it's too late to fix cheaply.</p>
+
+      <div class="callout">
+        <span class="lbl">The Packet You're Sending to Manufacturers</span>
+        <p>A manufacturer-ready packet: a one-page product brief, a tech pack with flats, full measurements, and tolerances, a fabric spec with composition/weight/color reference, and a trim list. This is what you send out in lesson 4 — not a mood board, not a Pinterest link.</p>
+      </div>
+
+      <div class="lesson-foot">
+        <span class="lbl">Next</span>
+        Lesson 4 is about finding manufacturers who can actually build this spec, evaluating them properly before you commit, and negotiating MOQs and pricing before you sign anything.
+      </div>
+    </article>
+
+    <!-- LESSON 4 -->
+    <article class="lesson" id="lesson-4">
+      <div class="lesson-head">
+        <div class="n">04</div>
+        <div class="t">
+          <h2>Find, Vet &amp; Negotiate With the Right Manufacturer</h2>
+          <div class="hook">Where to look, what to ask, and how to negotiate before you sign.</div>
+        </div>
+      </div>
+
+      <p>Most founders pick a manufacturer the way they'd pick a restaurant off a list — whoever answers first, quotes lowest, or shows up top of a Google search. Then they find out three months in that the factory built for one-off tourist orders, not a repeatable production run, and everything from lead times to consistency falls apart.</p>
+      <p>Picking a factory isn't a one-time decision. It has to hold up not just for your first sample, but for the reorder six months later. This lesson is about finding real candidates, evaluating them properly, and negotiating before you sign anything — not after.</p>
+
+      <h3><span class="idx">1</span>Where to Actually Look</h3>
+      <ul>
+        <li><strong>Sourcing platforms</strong> (Alibaba, Maker's Row, Sewport, Kompass) — high volume of options, wide range of reliability; treat as a starting list to filter hard, not a shortlist.</li>
+        <li><strong>Industry trade shows</strong> — you can see and touch actual work samples before committing, and gauge responsiveness in person.</li>
+        <li><strong>Sourcing agents</strong> — useful for introductions and language/logistics bridging, but be clear-eyed: an agent typically introduces and steps back. They don't manage sampling, QC, or the relationship after the intro — that stays your job unless you've explicitly contracted them for more.</li>
+        <li><strong>Referral networks</strong> — other founders who've actually produced with a factory. The single most reliable source, because it comes with a track record attached, not a sales pitch.</li>
+        <li><strong>Regional directories</strong> — factories cluster by capability and price tier by region. Match the region to your volume and quality target, not the other way around.</li>
+      </ul>
+
+      <h3><span class="idx">2</span>Send the Same RFQ to Multiple Factories at Once</h3>
+      <p>Send your product brief and tech pack from lesson 3 to <strong>5–10 factories simultaneously</strong>, not one at a time — sequential outreach costs you weeks you don't need to spend. Use a standardized request so quotes are actually comparable:</p>
+      <ul>
+        <li>Your quantities per SKU (from lesson 2)</li>
+        <li>A request for an <strong>itemized quote</strong>: unit cost ex-factory, and separately, an estimate of freight/duties to your delivery country</li>
+        <li>Sample cost and sample lead time</li>
+        <li>Production lead time at your quoted quantity</li>
+        <li>Payment terms</li>
+      </ul>
+      <p>A factory that quotes back in one round-trip email, with real numbers against your actual tech pack, is telling you something different than one that comes back with generic pricing and questions you already answered in the brief.</p>
+
+      <h3><span class="idx">3</span>What to Evaluate Beyond Price</h3>
+      <ul>
+        <li><strong>Relevant experience</strong> — have they actually built your product category before, at your fabric type and construction complexity? A factory that mainly runs wovens will underperform on a technical knit, and vice versa.</li>
+        <li><strong>The real MOQ, not just the quoted one</strong> — a factory can quote 50 pieces and still hand you a 3,000-yard fabric minimum you find out about after you've committed. Always ask explicitly: is there a fabric mill minimum or trim minimum behind this garment MOQ?</li>
+        <li><strong>Sample lead time and cost</strong> — a realistic first sample takes <strong>2–4 weeks</strong>. Anything promising 3-day samples on a first, unproven relationship is a signal to look closer, not a bonus.</li>
+        <li><strong>Communication quality during quoting</strong> — how a factory communicates before you've paid them anything is the best signal you'll get for how they'll communicate after.</li>
+      </ul>
+
+      <h3><span class="idx">4</span>Red Flags Worth Walking Away From</h3>
+      <ul>
+        <li>Price dramatically below every other quote, with no clear reason — usually means a corner gets cut somewhere you haven't been told about yet</li>
+        <li>No willingness to produce a pre-production sample before bulk — you're being asked to commit blind</li>
+        <li>Refusal to break payment into milestones and insistence on 100% upfront</li>
+        <li>No verifiable references or prior client work in your category</li>
+        <li>Questions that show they didn't actually read your tech pack — a sign they'll fill in future gaps with assumptions too</li>
+      </ul>
+
+      <h3><span class="idx">5</span>Negotiate Before You Sign — Not After</h3>
+      <ul>
+        <li><strong>MOQ flexibility</strong> — ask whether the total MOQ can be split across colorways within one style. Many factories will accommodate this if asked directly; almost none offer it unprompted.</li>
+        <li><strong>Payment terms</strong> — the industry standard is a <strong>30% deposit to start production, 70% before shipment</strong>. Be wary of anything asking for full payment upfront on a first order, and equally wary of a factory unwilling to accept any deposit structure at all.</li>
+        <li><strong>Price vs. total cost</strong> — the cheapest quote is rarely the cheapest outcome once you factor in revision rounds, delays, and the time you'll spend chasing answers.</li>
+      </ul>
+
+      <div class="callout">
+        <span class="lbl">Your Manufacturer Shortlist</span>
+        <p>A shortlist of 2–3 manufacturers, each with a comparable itemized quote, confirmed real MOQ, sample lead time and cost, and agreed payment terms. Pick the one you'd trust with a reorder, not just a first sample — that's the actual test.</p>
+      </div>
+
+      <div class="lesson-foot">
+        <span class="lbl">Next</span>
+        Lesson 5 is the roadmap from your selected manufacturer to finished goods — sampling, revisions, approval, your first PO, quality control, and shipping.
+      </div>
+    </article>
+
+    <!-- LESSON 5 -->
+    <article class="lesson" id="lesson-5">
+      <div class="lesson-head">
+        <div class="n">05</div>
+        <div class="t">
+          <h2>From Sample to Production: Your First Production Roadmap</h2>
+          <div class="hook">Sampling, revisions, approval, PO, QC, shipping — the exact sequence.</div>
+        </div>
+      </div>
+
+      <p>You've validated a customer, planned a collection, built a manufacturer-ready spec, and selected a factory. Everything from here is sequence — and skipping a step in this sequence is exactly how a founder ends up with 300 units that don't match what they approved.</p>
+
+      <h3><span class="idx">1</span>Sampling — Three Rounds, Not One</h3>
+      <ul>
+        <li><strong>Proto sample</strong> — the first physical version, built to check fit and construction against your tech pack. It will not be perfect. Its job is to surface what's wrong, not to be shippable.</li>
+        <li><strong>Revision rounds</strong> — expect <strong>2–3 rounds</strong> on a first collection before a sample is approvable. This is what your sample budget from lesson 2 was for.</li>
+        <li><strong>Pre-production (PP) sample</strong> — the final sample, built exactly as bulk will be, in the actual fabric and trims (not a placeholder). This is what you sign off against before cutting starts on your full order.</li>
+      </ul>
+
+      <h3><span class="idx">2</span>Approval Means Checked Against Tolerances — Not "Looks Good"</h3>
+      <p>Pull out the tolerances you set in your tech pack (lesson 3) and measure the sample against them, point by point — approval is a measurement, not a feeling. A documented measurement against a stated tolerance holds up later. "Looks good to me" doesn't.</p>
+
+      <h3><span class="idx">3</span>The Purchase Order — Get Everything in Writing Before Production Starts</h3>
+      <p>Once the PP sample is approved, issue a formal PO covering: quantities per SKU, agreed unit price, delivery date, and payment terms (the 30/70 split from lesson 4, or whatever you negotiated). This document is what you'll reference if anything about the delivered order doesn't match what was agreed.</p>
+
+      <h3><span class="idx">4</span>Production — Expect 30–60 Days, and Check In Mid-Run</h3>
+      <p>A first bulk run commonly takes <strong>30–60 days</strong> depending on quantity and factory backlog. Don't go silent for that whole window. A brief mid-production check-in — even just requesting photos of cut fabric or an in-line status update — catches problems while they're still cheap to fix.</p>
+
+      <h3><span class="idx">5</span>Quality Control — Check a Sample of the Lot, Not Every Unit</h3>
+      <p>QC on a production run doesn't mean inspecting all 300 units. It means pulling a statistically representative sample from the finished lot and checking it against your tech pack tolerances — an approach called AQL (Acceptable Quality Level) inspection, standard across the industry. Decide before production starts:</p>
+      <ul>
+        <li><strong>Who inspects</strong> — you, a hired third-party QC agent, or the factory's own team. A factory grading its own work has an obvious conflict of interest.</li>
+        <li><strong>When</strong> — a final inspection before shipment is the minimum; an in-line inspection partway through production catches problems earlier and cheaper.</li>
+      </ul>
+
+      <h3><span class="idx">6</span>Shipping — Know What You're Actually Paying For</h3>
+      <p>Ask any factory quote to specify shipping terms explicitly:</p>
+      <ul>
+        <li><strong>EXW (Ex Works)</strong> — you're responsible for everything from the factory door onward, including export customs</li>
+        <li><strong>FOB (Free on Board)</strong> — the factory handles export customs and loading; you take over once it's on the vessel/plane</li>
+        <li><strong>DDP (Delivered Duty Paid)</strong> — the factory handles everything, duties included, until it reaches your door</li>
+      </ul>
+      <p>These aren't interchangeable, and the price difference between them can be significant. Build a <strong>realistic lead-time buffer</strong> — shipping delays are common enough that "production finishes, product arrives the next day" should never be your plan.</p>
+
+      <div class="callout">
+        <span class="lbl">Your Next-Action Checklist</span>
+        <ol>
+          <li>Approve a proto sample against your tech pack</li>
+          <li>Run 2–3 revision rounds until fit and construction are correct</li>
+          <li>Approve a pre-production sample built in final fabric and trims</li>
+          <li>Issue a formal PO — quantities, price, delivery date, payment terms</li>
+          <li>Pay the agreed deposit and confirm the production start date</li>
+          <li>Check in mid-production — request photos or an in-line update</li>
+          <li>Arrange QC — decide who inspects, and against what tolerances</li>
+          <li>Confirm shipping terms (EXW / FOB / DDP) and build in a delivery buffer</li>
+          <li>Inspect the finished lot on arrival against your approved PP sample before it goes anywhere near a customer</li>
+        </ol>
+      </div>
+    </article>
+
+    <div class="closer">
+      <div class="box">
+        <p>Run this five-lesson sequence once, in order, and you'll have done what most first-time founders learn the expensive way — one missed step at a time, usually paid for in a delayed launch or a sample that never should have shipped.</p>
+        <p>This is the exact process we run for founders at Ten Fabrics, end to end, when they'd rather have one team own it than run it themselves. Whether you take it from here or hand it off, you now know what "right" is supposed to look like at every step.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
